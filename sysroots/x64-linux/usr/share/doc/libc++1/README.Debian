@@ -1,0 +1,31 @@
+libc++ for Debian
+-----------------
+
+Package of new implementation of C++ standard library and C++ ABI.
+
+As a quick start, libc++ can be used the following way:
+
+With this great example:
+---- foo.cpp ----
+#include <iostream>
+
+int main() {
+    std::cout << "plop" << std::endl;
+}
+---- foo.cpp ----
+
+$ clang++ -stdlib=libc++ -o plop foo.cpp
+
+$ ./plop
+plop
+
+$ ldd ./plop |grep c++
+	libc++.so.1 => /usr/lib/libc++.so.1 (0xb76c2000)
+
+
+As an helper, the script clang++-libc++ is provided to hide the call to libc++.
+With the same source, it can be used this way:
+
+$ clang++-libc++ -o plop foo.cpp
+
+ -- Sylvestre Ledru <sylvestre@debian.org>, Fri, 20 Jul 2012 19:30:49 +0200

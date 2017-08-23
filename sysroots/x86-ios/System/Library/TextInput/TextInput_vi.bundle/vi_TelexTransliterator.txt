@@ -1,0 +1,148 @@
+﻿# ***************************************************************************
+# *
+# *  Copyright (C) 2010 Apple Inc.All Rights Reserved.
+# *
+# ***************************************************************************
+#
+# telex assumes a QWERTY keyboard, interpreting the following letters as
+# diacritics
+$Acute = s; 			# 0x0301
+$Grave = f; 			# 0x0300
+$Hookabove = r; 		# 0x0309
+$Tilde = x; 			# 0x0303
+$Dotbelow = j; 			# 0x0323
+\u00C0 <> A $Grave;
+\u00C1 <> A $Acute;
+\u00C2 <> A A;
+\u00C3 <> A $Tilde;
+\u00C8 <> E $Grave;
+\u00C9 <> E $Acute;
+\u00CA <> E E;
+\u00CC <> I $Grave;
+\u00CD <> I $Acute;
+\u00D2 <> O $Grave;
+\u00D3 <> O $Acute;
+\u00D4 <> O O;
+\u00D5 <> O $Tilde;
+\u00D9 <> U $Grave;
+\u00DA <> U $Acute;
+\u00DD <> Y $Acute;
+\u00E0 <> a $Grave;
+\u00E1 <> a $Acute;
+\u00E2 <> a a;
+\u00E3 <> a $Tilde;
+\u00E8 <> e $Grave;
+\u00E9 <> e $Acute;
+\u00EA <> e e;
+\u00EC <> i $Grave;
+\u00ED <> i $Acute;
+\u00F2 <> o $Grave;
+\u00F3 <> o $Acute;
+\u00F4 <> o o;
+\u00F5 <> o $Tilde;
+\u00F9 <> u $Grave;
+\u00FA <> u $Acute;
+\u00FD <> y $Acute;
+\u0102 <> A w;
+\u0103 <> a w;
+\u0110 <> D D;
+\u0111 <> d d;
+\u0128 <> I $Tilde;
+\u0129 <> i $Tilde;
+\u0168 <> U $Tilde;
+\u0169 <> u $Tilde;
+\u01A0 <> O w;
+\u01A1 <> o w;
+\u01AF <> U w;
+\u01B0 <> u w;
+\u1EA0 <> A $Dotbelow;
+\u1EA1 <> a $Dotbelow;
+\u1EA2 <> A $Hookabove;
+\u1EA3 <> a $Hookabove;
+\u1EA4 <> A A $Acute;
+\u1EA5 <> a a $Acute;
+\u1EA6 <> A A $Grave;
+\u1EA7 <> a a $Grave;
+\u1EA8 <> A A $Hookabove;
+\u1EA9 <> a a $Hookabove;
+\u1EAA <> A A $Tilde;
+\u1EAB <> a a $Tilde;
+\u1EAC <> A A $Dotbelow;
+\u1EAD <> a a $Dotbelow;
+\u1EAE <> A w $Acute;
+\u1EAF <> a w $Acute;
+\u1EB0 <> A w $Grave;
+\u1EB1 <> a w $Grave;
+\u1EB2 <> A w $Hookabove;
+\u1EB3 <> a w $Hookabove;
+\u1EB4 <> A w $Tilde;
+\u1EB5 <> a w $Tilde;
+\u1EB6 <> A w $Dotbelow;
+\u1EB7 <> a w $Dotbelow;
+\u1EB8 <> E $Dotbelow;
+\u1EB9 <> e $Dotbelow;
+\u1EBA <> E $Hookabove;
+\u1EBB <> e $Hookabove;
+\u1EBC <> E $Tilde;
+\u1EBD <> e $Tilde;
+\u1EBE <> E E $Acute;
+\u1EBF <> e e $Acute;
+\u1EC0 <> E E $Grave;
+\u1EC1 <> e e $Grave;
+\u1EC2 <> E E $Hookabove;
+\u1EC3 <> e e $Hookabove;
+\u1EC4 <> E E $Tilde;
+\u1EC5 <> e e $Tilde;
+\u1EC6 <> E E $Dotbelow;
+\u1EC7 <> e e $Dotbelow;
+\u1EC8 <> I $Hookabove;
+\u1EC9 <> i $Hookabove;
+\u1ECA <> I $Dotbelow;
+\u1ECB <> i $Dotbelow;
+\u1ECC <> O $Dotbelow;
+\u1ECD <> o $Dotbelow;
+\u1ECE <> O $Hookabove;
+\u1ECF <> o $Hookabove;
+\u1ED0 <> O O $Acute;
+\u1ED1 <> o o $Acute;
+\u1ED2 <> O O $Grave;
+\u1ED3 <> o o $Grave;
+\u1ED4 <> O O $Hookabove;
+\u1ED5 <> o o $Hookabove;
+\u1ED6 <> O O $Tilde;
+\u1ED7 <> o o $Tilde;
+\u1ED8 <> O O $Dotbelow;
+\u1ED9 <> o o $Dotbelow;
+\u1EDA <> O w $Acute;
+\u1EDB <> o w $Acute;
+\u1EDC <> O w $Grave;
+\u1EDD <> o w $Grave;
+\u1EDE <> O w $Hookabove;
+\u1EDF <> o w $Hookabove;
+\u1EE0 <> O w $Tilde;
+\u1EE1 <> o w $Tilde;
+\u1EE2 <> O w $Dotbelow;
+\u1EE3 <> o w $Dotbelow;
+\u1EE4 <> U $Dotbelow;
+\u1EE5 <> u $Dotbelow;
+\u1EE6 <> U $Hookabove;
+\u1EE7 <> u $Hookabove;
+\u1EE8 <> U w $Acute;
+\u1EE9 <> u w $Acute;
+\u1EEA <> U w $Grave;
+\u1EEB <> u w $Grave;
+\u1EEC <> U w $Hookabove;
+\u1EED <> u w $Hookabove;
+\u1EEE <> U w $Tilde;
+\u1EEF <> u w $Tilde;
+\u1EF0 <> U w $Dotbelow;
+\u1EF1 <> u w $Dotbelow;
+\u1EF2 <> Y $Grave;
+\u1EF3 <> y $Grave;
+\u1EF4 <> Y $Dotbelow;
+\u1EF5 <> y $Dotbelow;
+\u1EF6 <> Y $Hookabove;
+\u1EF7 <> y $Hookabove;
+\u1EF8 <> Y $Tilde;
+\u1EF9 <> y $Tilde;
+

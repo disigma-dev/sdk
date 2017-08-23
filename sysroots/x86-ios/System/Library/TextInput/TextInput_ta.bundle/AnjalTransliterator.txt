@@ -1,0 +1,235 @@
+# ***************************************************************************
+# *
+# *  Copyright (C) 2007-2012 Apple, Inc. All Rights Reserved.
+# *
+# ***************************************************************************
+#
+$bs = \u005C;
+$sp = \u0020;
+#\u200C;
+$ZWNJ = \u200C;
+# pulli == virama
+$pulli=\u0BCD;
+# tamil matras
+$aa = \u0BBE; 
+$i = \u0BBF;
+$ii = \u0BC0;
+$u = \u0BC1;
+$uu = \u0BC2;
+$e = \u0BC6;
+$ee = \u0BC7;
+$ai = \u0BC8;
+$o = \u0BCA;
+$oo = \u0BCB;
+$au = \u0BCC;
+$U = \u0B89;
+
+$consonant = [\u0B95-\u0BB9];
+$matra = [\u0BBE-\u0BCC];
+$tamil = [\u0B82-\u0BD7];
+
+#
+# consonant-compound rules
+#
+n g > ங |$pulli;
+n j j > ஞ ச |$pulli;
+n j > ஞ |$pulli;
+n t > ந் த |$pulli;
+t h > த |$pulli;
+t r > ற் ற | $pulli;
+d r > ற |$pulli;  
+n d r > ன் ற |$pulli;
+n d > ண் ட |$pulli;
+[^$tamil] { n > ந |$pulli;
+n > ன | $pulli;
+#
+k s h > க் $ZWNJ ஷ|$pulli;
+s r i > ஶ்ரீ;
+s r > ஶ்ரீ;
+s h > ஷ |$pulli;
+S h > ஶ |$pulli;
+c h > ச  |$pulli;
+
+#vowel combinations
+aa > ஆ;
+ai > ஐ;
+au > ஔ;
+ii > ஈ;
+uu > ஊ;
+ee > ஏ;
+oo > ஓ;
+# basic letters
+q > ஃ;
+a > அ;
+A > ஆ;
+u > உ;
+U > ஊ;
+i > இ;
+I > ஈ;
+o > ஒ;
+O > ஓ;
+e > எ;
+E > ஏ;
+
+w > ந |$pulli;
+r > ர |$pulli;
+R > ற |$pulli;
+t > த |$pulli;
+y > ய |$pulli;
+p > ப |$pulli;
+s > ச |$pulli;
+S > ஸ |$pulli;
+d > ட |$pulli;
+g > க |$pulli;
+h > ஹ  |$pulli;
+j > ஜ  |$pulli;
+k > க  |$pulli;
+l > ல  |$pulli;
+L > ள  |$pulli;
+z > ழ  |$pulli;
+x > க்ஷ  |$pulli;
+c > ச  |$pulli;
+v > வ  |$pulli;
+b > ப  |$pulli;
+N > ண  |$pulli;
+m > ம  |$pulli;
+#
+# pulli vowel rules
+#
+$pulli aa >	$aa;
+$pulli A >	$aa;
+$pulli ai >	$ai;
+$pulli au >	$au;
+$pulli a >	;
+$pulli ii >	$ii;
+$pulli I >	$ii;
+$pulli i >	$i;
+$pulli uu >	$uu;
+$pulli U >	$uu;
+$pulli u >	$u;
+$pulli ee >	$ee;
+$pulli E >	$ee;
+$pulli e >	$e;
+$pulli oo >	$oo;
+$pulli O >	$oo;
+$pulli o >	$o;
+
+
+#
+# reverse rules
+#
+
+# conflicts
+#A < ஆ;
+#A <	$aa;
+#I < ஈ;
+#I <	$ii;
+#U <	$uu;
+#U < ஊ;
+#E < ஏ;
+#E <	$ee;
+#O < ஓ;
+#O <	$oo;
+
+q < ஃ;
+# independent vowels
+a < அ;
+u < உ;
+i < இ;
+o < ஒ;
+e < எ;
+aa < ஆ;
+ii < ஈ;
+uu < ஊ;
+ee < ஏ;
+oo < ஓ;
+ai < ஐ;
+au < ஔ;
+
+#matras
+aa <	$aa;
+ai <	$ai;
+au <	$au;
+ii <	$ii;
+i <	$i;
+uu <	$uu;
+u <	$u;
+ee <	$ee;
+e <	$e;
+oo <	$oo;
+o <	$o;
+
+# pulli just disappears
+< $pulli;
+
+n g | < ங  } [$matra $pulli];;
+n j j | < ஞ ச  } [$matra $pulli];
+n j | < ஞ  } [$matra $pulli];
+n t | < ந் த  } [$matra $pulli];
+t r | < ற் ற   } [$matra $pulli];
+n d r | < ன் ற  } [$matra $pulli];
+n d | < ண் ட  } [$matra $pulli];
+s r i | < ஶ்ரீ;
+s r | < ஶ்ர  } [$matra $pulli];
+S h | < ஶ  } [$matra $pulli];
+s h | < ஷ  } [$matra $pulli];
+
+
+S h a  | < ஶ;
+s h a  | < ஷ;
+n g a < ங;
+n j j a < ஞ ச;
+n j a < ஞ;
+n t a  < ந் த;
+t r a  < ற் ற;
+n d r a  < ன் ற;
+n d a  < ண் ட;
+
+n | < [:^Letter:] { ந } [$matra $pulli];
+w | < ந } [$matra $pulli];
+n | < ன  } [$matra $pulli];
+r | < ர } [$matra $pulli];
+R | < ற } [$matra $pulli];
+t | < த } [$matra $pulli];
+y | < ய } [$matra $pulli];
+p | < ப } [$matra $pulli];
+S | < ஸ } [$matra $pulli];
+d | < ட } [$matra $pulli];
+h | < ஹ  } [$matra $pulli];
+j | < ஜ  } [$matra $pulli];
+l | < ல  } [$matra $pulli];
+L | < ள  } [$matra $pulli];
+z | < ழ  } [$matra $pulli];
+c | < ச  } [$matra $pulli];
+v | < வ  } [$matra $pulli];
+N | < ண  } [$matra $pulli];
+m | < ம  } [$matra $pulli];
+x | < க்ஷ  } [$matra $pulli];
+k | < க  } [$matra $pulli];
+
+xa < க்ஷ ;
+ka < க ;
+na < [:^Letter:] { ந;
+wa < ந;
+na < ன;
+ra < ர;
+Ra < ற;
+ta < த;
+ya < ய;
+pa < ப;
+ca < ச;
+Sa < ஸ;
+da < ட;
+ha < ஹ ;
+ja < ஜ ;
+la < ல ;
+La < ள ;
+za < ழ ;
+va < வ ;
+Na < ண ;
+ma < ம ;
+
+
+
+
+

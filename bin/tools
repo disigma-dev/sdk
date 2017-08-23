@@ -1,0 +1,240 @@
+#!/bin/bash
+system=$(uname -s | tr A-Z a-z)
+basename=$(basename "$0")
+workdir=$(cd "$(dirname "$0")" && pwd)
+sdk=$(cd "$(dirname "$0")/.." && pwd)
+[[ "x$basename" == *"-"* ]] && target=${basename%-*} || exit
+sysroot="$sdk/sysroots/$target"
+toolchain="$sdk/toolchains/clang-$system"
+cctools="$sdk/toolchains/cctools-$system"
+binutils="$sdk/toolchains/binutils-$system"
+ndk="$sdk/toolchains/android-ndk"
+if [[ "x$target" == "xarm-android" ]]; then
+    ndkgcc=$(ls -1d $ndk/toolchains/arm-linux-androideabi-*/prebuilt/$system-x86_64 | head -1)
+    ndktarget=armv7a-none-linux-androideabi
+    ndkarch=arm
+    ndkplatform=android-16
+elif [[ "x$target" == "xx86-android" ]]; then
+    ndkgcc=$(ls -1d $ndk/toolchains/x86-*/prebuilt/$system-x86_64 | head -1)
+    ndktarget=i686-none-linux-android
+    ndkarch=x86
+    ndkplatform=android-16
+fi
+action=${basename/#*-/}
+ccache=$(which ccache)
+
+triple_x64_linux="x86_64-linux-clang"
+triple_arm_android="arm-linux-androideabi"
+triple_arm_ios="armv7-apple-darwin"
+triple_arm_ios32="armv7-apple-darwin"
+triple_arm_ios64="arm64-apple-darwin"
+triple_x86_macos="i386-apple-darwin"
+triple_x86_macos32="i386-apple-darwin"
+triple_x86_macos64="x86_64-apple-darwin"
+triple_x86_linux="i386-linux-clang"
+triple_x86_android="i686-linux-android"
+triple_x86_ios="x86_64-apple-darwin"
+triple_x86_ios32="i386-apple-darwin"
+triple_x86_ios64="x86_64-apple-darwin"
+triplename="triple_${target/-/_}$BITS"
+triple=${!triplename}
+
+host_x64_linux="x86_64-linux-gnu"
+host_arm_android="armv7-none-linux-androideabi"
+host_arm_ios="aarch64-apple-darwin"
+host_arm_ios32="armv7-apple-darwin"
+host_arm_ios64="aarch64-apple-darwin"
+host_x86_macos="x86_64-apple-darwin"
+host_x86_macos32="i386-apple-darwin"
+host_x86_macos64="x86_64-apple-darwin"
+host_x86_linux="i386-linux-gnu"
+host_x86_android="i686-none-linux-android"
+host_x86_ios="x86_64-apple-darwin"
+host_x86_ios32="i386-apple-darwin"
+host_x86_ios64="x86_64-apple-darwin"
+hostname="host_${target/-/_}$BITS"
+host=${!hostname}
+
+flags_x64_linux+=" -Wl,--rpath-link=$sysroot/lib/$host:$sysroot/usr/lib/$host"
+flags_x86_linux+=" -Wl,--rpath-link=$sysroot/lib/$host:$sysroot/usr/lib/$host"
+flags_arm_android+=" -fPIE"
+flags_x86_android+=" -fPIE"
+flags_all+=" -Qunused-arguments -fPIC"
+
+if [[ "x$*" != *"-stdlib"* ]]; then
+    flags_all+=" -stdlib=libc++"
+fi
+
+if [[ "x$*" != *"-version-min"* ]]; then
+    flags_arm_ios+=" -miphoneos-version-min=8.0"
+    flags_x86_ios+=" -mios-simulator-version-min=8.0"
+    flags_x86_macos+=" -mmacosx-version-min=10.7"
+fi
+
+if [[ "x$*" != *"-fvisibility"* ]]; then
+    flags_arm_android+=" -fvisibility=hidden"
+    flags_x86_android+=" -fvisibility=hidden"
+fi
+if [[ "x$*" != *"-O"* ]]; then
+    flags_all+=" -O3"
+fi
+
+if [[ "x$*" != *"-arch"* ]]; then
+    if [[ "x$BITS" == "x32" ]]; then
+        flags_arm_ios+=" -arch armv7"
+        flags_x86_ios+=" -arch i386"
+        flags_x86_macos+=" -arch i386"
+    elif [[ "x$BITS" == "x64" ]]; then
+        flags_arm_ios+=" -arch arm64"
+        flags_x86_ios+=" -arch x86_64"
+        flags_x86_macos+=" -arch x86_64"
+    elif [[ "x$action" == "xcpp" ]]; then
+        flags_arm_ios+=" -arch arm64"
+        flags_x86_ios+=" -arch x86_64"
+        flags_x86_macos+=" -arch x86_64"
+    else
+        flags_arm_ios+=" -arch armv7 -arch arm64"
+        flags_x86_ios+=" -arch i386 -arch x86_64"
+        flags_x86_macos+=" -arch i386 -arch x86_64"
+    fi
+fi
+
+cc() {
+    flagsname="flags_${target/-/_}"
+    flags="${!flagsname}"
+
+    if [[ "x$target" == *"-android" ]]; then
+        exec $ccache "$ndk/toolchains/llvm/prebuilt/$system-x86_64/bin/clang" \
+            -target $ndktarget \
+            --sysroot "$ndk/platforms/$ndkplatform/arch-$ndkarch" \
+            --gcc-toolchain="$ndkgcc" \
+            -isystem "$ndk/sources/cxx-stl/llvm-libc++/include" \
+            -isystem "$ndk/sources/android/support/include" \
+            $flags "$@"
+    elif [[ "x$*" != *"--sysroot"* ]]; then
+        exec $ccache "$toolchain/bin/clang" -target $triple $flags $flags_all --sysroot "$sysroot" "$@"
+    else
+        exec $ccache "$toolchain/bin/clang" -target $triple $flags $flags_all "$@"
+    fi
+}
+
+cxx() {
+    flags_arm_android+=" -L$ndk/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a -lc++ -lm"
+    flags_x86_android+=" -L$ndk/sources/cxx-stl/llvm-libc++/libs/x86 -lc++ -lm"
+
+    flagsname="flags_${target/-/_}"
+    flags="${!flagsname}"
+
+    if [[ "x$target" == *"-android" ]]; then
+        exec $ccache "$ndk/toolchains/llvm/prebuilt/$system-x86_64/bin/clang" \
+            -target $ndktarget \
+            --sysroot "$ndk/platforms/$ndkplatform/arch-$ndkarch" \
+            --gcc-toolchain="$ndkgcc" \
+            -isystem "$ndk/sources/cxx-stl/llvm-libc++/include" \
+            -isystem "$ndk/sources/android/support/include" \
+            -Qunused-arguments \
+            $flags "$@"
+    elif [[ "x$*" != *"--sysroot"* ]]; then
+        exec $ccache "$toolchain/bin/clang++" -target $triple $flags $flags_all --sysroot "$sysroot" "$@"
+    else
+        exec $ccache "$toolchain/bin/clang++" -target $triple $flags $flags_all "$@"
+    fi
+}
+
+cpp() {
+    cc -E "$@"
+}
+
+lipo() {
+    exec "$cctools/bin/lipo" "$@"
+}
+
+invoke() {
+    if [[ "x$target" == *"-android" ]]; then
+        exec "$ndkgcc/bin/$triple-$action" "$@"
+    else
+        exec "$toolchain/bin/$triple-$action" "$@"
+    fi
+}
+
+exports() {
+    [ -z "$NOCC" ] && export CC="$workdir/$target-cc$BITS"
+    [ -z "$NOCXX" ] && export CXX="$workdir/$target-c++$BITS"
+    [ -z "$NOCPP" ] && export CPP="$workdir/$target-cpp$BITS"
+    [ -z "$NOCXXCPP" ] && export CXXCPP="$workdir/$target-cpp$BITS"
+    [ -z "$NOAR" ] && export AR="$workdir/$target-ar"
+    [ -z "$NOLD" ] && export LD="$workdir/$target-ld"
+    [ -z "$NONM" ] && export NM="$workdir/$target-nm"
+    [ -z "$NOAS" ] && export AS="$workdir/$target-as"
+    [ -z "$NORANLIB" ] && export RANLIB="$workdir/$target-ranlib"
+    [ -z "$NOSTRIP" ] && export STRIP="$workdir/$target-strip"
+    [ -z "$NOINSTALLNAMETOOL" ] && export INSTALL_NAME_TOOL="$cctools/bin/install_name_tool"
+    [ -z "$NOOBJCOPY" ] && export OBJCOPY="$workdir/$target-objcopy"
+    [ -z "$NOSYSROOT" ] && export SYSROOT="$sysroot"
+    [ -z "$NOTARGET" ] && export TARGET="$target"
+    [ -z "$NOHOST" ] && export HOST="$host"
+}
+
+cmakebuild() {
+    [[ "$target" == *"os" ]] && systemname=Darwin || systemname=Linux
+    exports
+    cmake \
+    -DCMAKE_SYSTEM_NAME=$systemname \
+    -DCMAKE_C_COMPILER_ID="Clang" \
+    -DCMAKE_CXX_COMPILER_ID="Clang" \
+    -DCMAKE_AR="$AR" \
+    -DCMAKE_LINKER="$LD" \
+    -DCMAKE_RANLIB="$RANLIB" \
+    -DCMAKE_STRIP="$STRIP" \
+    -DCMAKE_INSTALL_NAME_TOOL="$INSTALL_NAME_TOOL" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX="$(pwd)/targets" \
+    -DCMAKE_OSX_SYSROOT="$sysroot" \
+    -DCMAKE_FIND_ROOT_PATH="$sysroot" \
+    -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+    -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+    -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+    -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+    -DCMAKE_LINK_SEARCH_START_STATIC=1 \
+    --no-warn-unused-cli \
+    "$@"
+}
+
+autobuild() {
+    exports
+    "$@" --host=$host --enable-static --disable-shared --with-pic --prefix=$(pwd)/targets --with-sysroot="$sysroot"
+}
+
+run() {
+    exports
+    "$@"
+}
+
+case "x$action" in 
+    "x")
+        ;;
+    "xcc"*)
+        BITS=${action:2} cc "$@"
+        ;;
+    "xc++"*)
+        BITS=${action:2} cxx "$@"
+        ;;
+    "xcpp"*)
+        BITS=${action:2} cpp "$@"
+        ;;
+    "xlipo")
+        lipo "$@"
+        ;;
+    "xcmakebuild")
+        cmakebuild "$@"
+        ;;
+    "xautobuild")
+        autobuild "$@"
+        ;;
+    "xrun")
+        run "$@"
+        ;;
+    *)
+        invoke "$@"
+        ;;
+esac

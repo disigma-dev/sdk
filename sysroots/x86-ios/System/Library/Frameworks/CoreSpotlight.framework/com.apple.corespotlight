@@ -1,0 +1,14 @@
+? [= Facility com.apple.corespotlight] claim only
+
+#if TARGET_IPHONE_SIMULATOR
+#define CS_DIRECTORY $ENV(SIMULATOR_LOG_ROOT)/CrashReporter/DiagnosticLogs/com.apple.corespotlight.asl
+#define CS_EXTRA
+#elif TARGET_OS_IPHONE
+#define CS_DIRECTORY /var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/com.apple.corespotlight.asl
+#define CS_EXTRA     uid=501 gid=501
+#else
+#define CS_DIRECTORY /var/log/com.apple.corespotlight.asl
+#define CS_EXTRA
+#endif
+
+* directory CS_DIRECTORY format=std rotate=utc ttl=7 compress file_max=5M all_max=25M mode=0740 CS_EXTRA

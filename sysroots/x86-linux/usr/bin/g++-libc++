@@ -1,0 +1,2 @@
+#!/bin/sh
+g++ -std=c++0x -nodefaultlibs -lc++ -lc -lgcc_s -isystem/usr/include/c++/v1 "$@"

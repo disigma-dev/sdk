@@ -1,0 +1,1 @@
+/usr/share/sysvinit/update-rc.d

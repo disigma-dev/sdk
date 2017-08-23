@@ -1,0 +1,110 @@
+# ***************************************************************************
+# *
+# *  Copyright (C) 2007-2012 Apple, Inc.All Rights Reserved.
+# *
+# ***************************************************************************
+#
+$bs = \u005C;
+$ZWNJ = \u200C; 
+$kssa = \u0BBD;
+
+#independent vowel
+$A = \u0B85; 
+$AA = \u0B86; 
+$I = \u0B87; 
+$II = \u0B88; 
+$U = \u0B89; 
+$UU = \u0B8A; 
+$E = \u0B8E; 
+$EE = \u0B8F; 
+$AI = \u0B90; 
+$O = \u0B92; 
+$OO = \u0B93; 
+$AU = \u0B94;
+# matras
+$aa = \u0BBE; 
+$i = \u0BBF;
+$ii = \u0BC0;
+$u = \u0BC1;
+$uu = \u0BC2;
+$e = \u0BC6;
+$ee = \u0BC7;
+$ai = \u0BC8;
+$o = \u0BCA;
+$oo = \u0BCB;
+$au = \u0BCC;
+$pulli=\u0BCD;
+$consonant = [க-ஹ $kssa];
+$matra = [\u0BBE-\u0BCC];
+$baseVowel = [\u0B85-\u0B94];
+$noPulli = [^$pulli];
+
+#
+# consonant-consonant rules
+#
+
+$noPulli{ க க > க $pulli க;
+$noPulli{ $kssa $kssa > | $kssa $pulli $kssa;   # kssa must still be converted
+$noPulli{ ங ங > ங $pulli ங;
+$noPulli{ ங க > ங $pulli க;
+$noPulli{ ச ச > ச $pulli ச;
+$noPulli{ ஜ ஜ > ஜ $pulli ஜ;
+$noPulli{ ஞ ஞ > ஞ $pulli ஞ;
+$noPulli{ ஞ ச > ஞ $pulli ச;
+$noPulli{ ட ட > ட $pulli ட;
+$noPulli{ ண ண > ண $pulli ண;
+$noPulli{ ண ட > ண $pulli ட;
+$noPulli{ த த > த $pulli த;
+$noPulli{ ந ந > ந $pulli ந;
+$noPulli{ ந த > ந $pulli த;
+$noPulli{ ன ன > ன $pulli ன;
+$noPulli{ ன ற > ன $pulli ற;
+$noPulli{ ப ப > ப $pulli ப;
+$noPulli{ ம ம > ம $pulli ம;
+$noPulli{ ம ப > ம $pulli ப;
+$noPulli{ ய ய > ய $pulli ய;
+$noPulli{ ர ர > ர $pulli ர;
+$noPulli{ ற ற > ற $pulli ற;
+$noPulli{ ல ல > ல $pulli ல;
+$noPulli{ ள ள > ள $pulli ள;
+$noPulli{ ழ ழ > ழ $pulli ழ;
+$noPulli{ வ வ > வ $pulli வ;
+$noPulli{ ஶ ஶ > ஶ $pulli ஶ;	#sha 
+$noPulli{ ஷ ஷ > ஷ $pulli ஷ;
+$noPulli{ ஸ ஸ > ஸ $pulli ஸ;
+$noPulli{ ஹ ஹ > ஹ $pulli ஹ;
+
+$kssa <> க $pulli ஷ;
+க $pulli ஷ <> க $pulli $ZWNJ ஷ;
+
+#
+# base vowel to matra
+#
+$consonant { $A ($baseVowel) > $1;
+$consonant { $A <> $consonant { } [$consonant $baseVowel];
+$consonant { $AA <> $consonant { $aa;
+$consonant { $AI <> $consonant { $ai;
+$consonant { $AU <> $consonant { $au;
+$consonant { $I <> $consonant { $i;
+$consonant { $II <> $consonant { $ii;
+$consonant { $U <> $consonant { $u;
+$consonant { $UU <> $consonant { $uu;
+$consonant { $E <> $consonant { $e;
+$consonant { $EE <> $consonant { $ee;
+$consonant { $O <> $consonant { $o;
+$consonant { $OO <> $consonant { $oo;
+
+# stand alone matra rules
+# preceeding a vowel with backslash
+# forces matra form
+$bs $AA <> $aa;
+$bs $AI <> $ai;
+$bs $AU <> $au;
+$bs $II <> $ii;
+$bs $I <> $i;
+$bs $UU <> $uu;
+$bs $U <> $u;
+$bs $EE <> $ee;
+$bs $E <> $e;
+$bs $OO <> $oo;
+$bs $O <> $o;

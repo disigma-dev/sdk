@@ -1,0 +1,10 @@
+/.
+/usr
+/usr/bin
+/usr/bin/g++-libc++
+/usr/bin/clang++-libc++
+/usr/share
+/usr/share/doc
+/usr/share/doc/libc++-helpers
+/usr/share/doc/libc++-helpers/copyright
+/usr/share/doc/libc++-helpers/changelog.Debian.gz

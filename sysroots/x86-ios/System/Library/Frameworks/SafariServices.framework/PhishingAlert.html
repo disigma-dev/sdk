@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+    * {
+        -webkit-box-sizing: border-box;
+    }
+
+    html {
+        display: table;
+        height: 100%;
+        width: 100%;
+    }
+
+    body {
+        background-color: white;
+        display: table-cell;
+        vertical-align: middle;
+        margin: 0;
+        padding: 0 15px;
+        -webkit-user-select: none;
+        -webkit-text-size-adjust: none;
+        cursor: default;
+        text-align: center;
+    }
+
+    .alert {
+        position: relative;
+        max-width: 536px;
+        margin: 0 auto;
+    }
+
+    .alert.phishing .userinfo {
+        display:none;
+    }
+
+    .alert.userinfo .malware {
+        display:none;
+    }
+
+    .alert.userinfo .phishing {
+        display:none;
+    }
+
+    h1 {
+        padding: 0;
+        margin-bottom: 16px;
+        font: -apple-system-headline;
+        color: rgb(255, 59, 48);
+    }
+
+    p {
+        margin: 0;
+        padding: 0;
+        font: -apple-system-body;
+        word-wrap: break-word;
+        color: rgba(0, 0, 0, .6);
+    }
+
+    p.phishing.google {
+        margin-top: 15px;
+    }
+
+    a {
+        font: -apple-system-caption1;
+        font-weight: bold;
+        color: inherit;
+    }
+
+    .button-bar {
+        /* The cap of the first button should be 50pt from the baseline of
+           #phishing_details & #userinfo_details at the normal system text size. */
+        margin-top: 38px;
+    }
+
+    .button-bar button {
+        /* The cap of each button should be 25pt from the baseline of the
+           previous button at the normal system text size. */
+        margin: 0 auto 12px auto;
+        display: block;
+        width: 100%;
+        border-width: 0;
+        font: -apple-system-tall-body;
+        color: rgb(0, 122, 255);
+    }
+
+    .button-bar button:last-of-type {
+        margin-bottom: 0;
+    }
+
+    .button-bar button.active {
+        color: rgba(0, 122, 255, .4);
+    }
+
+    .button-bar.goBack .closePage, .button-bar.closePage .goBack {
+        display: none;
+    }
+    </style>
+    <script type="text/javascript">
+        String.prototype.format = function()
+        {
+            var stringParts = this.split("%@");
+            for (var i = 0; i < arguments.length; ++i)
+                stringParts.splice(i * 2 + 1, 0, arguments[i].toString());
+            return stringParts.join("");
+        }
+
+        function Button(element) {
+            this.element = element;
+            this.pressed = false;
+            this.absolutePosition = [0, 0];
+        }
+
+        touchEndedHandler = function(e, button) {
+            if (button.element.className === "active") {
+                var event = document.createEvent("MouseEvents");
+                event.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, button.element);
+                button.element.dispatchEvent(event);
+            }
+
+            button.element.className = "default";
+        }
+
+        touchCancelHandler = function(e, button) {
+            button.element.className = "default";
+        }
+
+        touchMoveHandler = function(e, button) {
+            if (e.targetTouches.length != 1)
+                return;
+
+            e.preventDefault();
+
+            var x = e.targetTouches[0].clientX;
+            var y = e.targetTouches[0].clientY;
+            if (x < button.absolutePosition[0] || y < button.absolutePosition[1] ||
+                x > button.absolutePosition[0] + button.element.offsetWidth || y > button.absolutePosition[1] + button.element.offsetHeight)
+                button.element.className = "default";
+            else if (button.pressed)
+                button.element.className = "active";
+        }
+
+        touchStartHandler = function(e, button) {
+            e.preventDefault();
+            button.pressed = true;
+            button.element.className = "active";
+        }
+
+        function positionOfElementOnPage(element) {
+            var positionLeft = 0;
+            var positionTop = 0;
+
+            do {
+                positionLeft += element.offsetLeft;
+                positionTop += element.offsetTop;
+            } while (element = element.offsetParent);
+
+            return [positionLeft, positionTop];
+        }
+
+        const defaultReportAnErrorURL = "http://www.google.com/safebrowsing/report_error/?tpl=generic&continue=http%3A%2F%2Fwww.apple.com%2Fsafari%2Fantiphishing%2Freport_submitted.html";
+        const defaultLearnMoreAboutPhishingFromGoogleURL = "http://www.google.com/support/bin/answer.py?answer=106318";
+
+        var PhishingAlert = {
+            _host: undefined,
+            _source: undefined,
+            _type: undefined,
+            _currentURL: undefined,
+
+            get host()
+            {
+                return this._host
+            },
+
+            set host(value)
+            {
+                if (this._host === value)
+                    return;
+                this._host = value;
+            },
+
+            get currentURL()
+            {
+                return this._currentURL;
+            },
+
+            set currentURL(value)
+            {
+                if (this._currentURL === value)
+                    return;
+                this._currentURL = value;
+            },
+
+            get source()
+            {
+                return this._source;
+            },
+
+            set source(value)
+            {
+                this._source = value;
+            },
+
+            get type()
+            {
+                return this._type;
+            },
+
+            set type(value)
+            {
+                this._type = value;
+            },
+
+            pageLoaded: function()
+            {
+                PhishingAlertController.loaded();
+            },
+
+            updateUI: function(source, type, host, currentURL, reportAnErrorURL, learnMoreAboutPhishingURL)
+            {
+                if (this.source != source || this.type != type) {
+                    document.getElementById("alert").className = "alert " + type + " " + source;
+                    this.source = source;
+                    this.type = type;
+                }
+
+                if (type === "phishing") {
+                    document.title = PhishingAlertController.UIString("Suspected Phishing Site (title)", "Title of warning page for suspected phishing site");
+                    document.getElementById("phishing_warning").innerHTML = PhishingAlertController.UIString("Suspected Phishing Site", "Header for warning page for suspected phishing site");
+                    document.getElementById("phishing_details").innerHTML = PhishingAlertController.UIString("The website you are visiting has been reported as a “phishing” website. These websites are designed to trick you into disclosing personal or financial information, usually by creating a copy of a legitimate website, such as a bank.", "Detail text for phishing warning");
+                } else if (type == "userinfo") {
+                    document.title = PhishingAlertController.UIString("Possible Phishing Site (title)", "Title of warning page for possible phishing site");
+                    document.getElementById("userinfo_warning").innerHTML = PhishingAlertController.UIString("Possible Phishing Site", "Header for warning page for possible phishing site");
+                    document.getElementById("userinfo_details").innerHTML = PhishingAlertController.UIString("The website you are visiting has a user name or password in its address. This may be a “phishing” website. These websites are designed to trick you into disclosing personal or financial information, usually by creating a copy of a legitimate website, such as a bank.", "Detail text for user name and password phishing warning");
+                }
+
+                document.getElementById("learn-more-phishing").innerHTML = PhishingAlertController.UIString("Learn more about phishing scams", "Display text for link to learn about phishing scams");
+                document.getElementById("report-an-error").innerHTML = PhishingAlertController.UIString("Report an error", "Display text for link to report an error about phishing warnings to google");
+                document.getElementById("ignore_this_warning").innerHTML = PhishingAlertController.UIString("Ignore this Warning", "Title of button to ignore a fraud warning");
+                document.getElementById("go_back").innerHTML = PhishingAlertController.UIString("Go Back", "Go Back button title");
+                document.getElementById("close_page").innerHTML = PhishingAlertController.UIString("Close this Page", "Title of button to close a page with a fraud warning");
+
+                var closeButton = new Button(document.getElementById("close_page"));
+                var goBackButton = new Button(document.getElementById("go_back"));
+                var ignoreButton = new Button(document.getElementById("ignore_this_warning"));
+
+                closeButton.element.addEventListener('touchstart', function(e) { touchStartHandler(e, closeButton); }, false);
+                goBackButton.element.addEventListener('touchstart', function(e) { touchStartHandler(e, goBackButton); }, false);
+                ignoreButton.element.addEventListener('touchstart', function(e) { touchStartHandler(e, ignoreButton); }, false);
+
+                closeButton.element.addEventListener('touchmove', function(e) { touchMoveHandler(e, closeButton) }, false);
+                goBackButton.element.addEventListener('touchmove', function(e) { touchMoveHandler(e, goBackButton) }, false);
+                ignoreButton.element.addEventListener('touchmove', function(e) { touchMoveHandler(e, ignoreButton) }, false);
+
+                closeButton.element.addEventListener('touchend', function(e) { touchEndedHandler(e, closeButton) }, false);
+                goBackButton.element.addEventListener('touchend', function(e) { touchEndedHandler(e, goBackButton) }, false);
+                ignoreButton.element.addEventListener('touchend', function(e) { touchEndedHandler(e, ignoreButton) }, false);
+
+                closeButton.element.addEventListener('touchcancel', function(e) { touchCancelHandler(e, closeButton) }, false);
+                goBackButton.element.addEventListener('touchcancel', function(e) { touchCancelHandler(e, goBackButton) }, false);
+                ignoreButton.element.addEventListener('touchcancel', function(e) { touchCancelHandler(e, ignoreButton) }, false);
+
+                var canGoBack = history.length > 1;
+
+                if (canGoBack) {
+                    document.getElementById("button-bar").removeChild(closeButton.element);
+                    goBackButton.absolutePosition = positionOfElementOnPage(goBackButton.element);
+                } else {
+                    document.getElementById("button-bar").removeChild(goBackButton.element);
+                    closeButton.absolutePosition = positionOfElementOnPage(closeButton.element);
+                }
+                ignoreButton.absolutePosition = positionOfElementOnPage(ignoreButton.element);
+
+                this.host = host;
+                this.currentURL = currentURL;
+
+                if (reportAnErrorURL === "")
+                    document.getElementById("report-an-error").href = "%@&url=%@&hl=%@".format(defaultReportAnErrorURL, escape(this.currentURL), navigator.language);
+                else
+                    document.getElementById("report-an-error").href = reportAnErrorURL;
+
+                if (learnMoreAboutPhishingURL === "")
+                    document.getElementById("learn-more-phishing").href = "%@&hl=%@".format(defaultLearnMoreAboutPhishingFromGoogleURL, navigator.language);
+                else
+                    document.getElementById("learn-more-phishing").href = learnMoreAboutPhishingURL;
+
+                // Update direction based on the user default language.
+                if (PhishingAlertController.isRTL()) {
+                    document.body.style.direction = "rtl";
+                }
+            },
+        };
+
+        window.addEventListener("load", function() { PhishingAlert.pageLoaded(); }, false);
+    </script>
+</head>
+<body>
+<div id="alert" class="alert phishing google">
+    <h1 class="phishing" id="phishing_warning"><span class="l12n"></span></h1>
+    <h1 class="userinfo" id="userinfo_warning"><span class="l12n"></span></h1>
+    <div class="alert-body">
+        <p class="phishing l12n" id="phishing_details"></p>
+        <p class="phishing google">
+            <a class="l12n" id="learn-more-phishing"></a><br>
+            <a class="l12n" id="report-an-error"></a>
+        </p>
+        <p class="userinfo l12n" id="userinfo_details"></p>
+        <div class="button-bar goBack closePage" id="button-bar">
+            <button type="submit" class="l12n" onClick="PhishingAlertController.goBackSelected();" id="go_back"></button>
+            <button type="submit" class="l12n" onClick="PhishingAlertController.closePageSelected();" id="close_page"></button>
+            <button type="button" class="l12n" onClick="PhishingAlertController.ignoreWarningSelected();" id="ignore_this_warning"></button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
