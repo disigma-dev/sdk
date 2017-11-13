@@ -27,7 +27,7 @@ binutils="$sdk/toolchains/binutils-$system"
 ndk="$sdk/toolchains/$target-ndk-$system"
 workspace="$(cd "$sdk/.." && pwd)"
 archive="$workspace/archive"
-frameworks="$archive/frameworks/$target"
+frameworks="$archive/$target"
 
 ##############################################################################
 #                                custom                                      #
