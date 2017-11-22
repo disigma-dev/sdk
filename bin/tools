@@ -110,7 +110,7 @@ cc() {
             --gcc-toolchain="$ndkgcc" \
             -isystem "$ndk/sources/cxx-stl/llvm-libc++/include" \
             -isystem "$ndk/sources/android/support/include" \
-            $flags "$@"
+            $flags $flags_all "$@"
     elif [[ "x$*" != *"--sysroot"* ]]; then
         exec $ccache "$toolchain/bin/clang" -target $triple $flags $flags_all --sysroot "$sysroot" "$@"
     else
@@ -133,7 +133,7 @@ cxx() {
             -isystem "$ndk/sources/cxx-stl/llvm-libc++/include" \
             -isystem "$ndk/sources/android/support/include" \
             -Qunused-arguments \
-            $flags "$@"
+            $flags $flags_all "$@"
     elif [[ "x$*" != *"--sysroot"* ]]; then
         exec $ccache "$toolchain/bin/clang++" -target $triple $flags $flags_all --sysroot "$sysroot" "$@"
     else
