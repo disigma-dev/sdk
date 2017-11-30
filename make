@@ -121,7 +121,10 @@ oninstall() {
         cp -avf "$project/${name}_dependency" "$output/dependency" &&
         cp -avf "$prefix/include/"* "$output/headers/" &&
         cp -avf "$prefix/lib/lib${name}.a" "$output/libraries/lib${name}_debug.a" &&
-        cp -avf "$prefix/lib/lib${name}.a" "$output/libraries/lib${name}.a"
+        cp -avf "$prefix/lib/lib${name}.a" "$output/libraries/lib${name}.a" &&
+        if hasfunction postinstall; then
+            postinstall ${names[$i]} ${versions[$i]}
+        fi
     done
 }
 
