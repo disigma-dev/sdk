@@ -1,27 +1,31 @@
 #!/bin/bash
 system=$(uname -s | tr A-Z a-z)
+if [[ "$system" == "cygwin"* ]]; then
+    system=cygwin
+fi
 basename=$(basename "$0")
-workdir=$(cd "$(dirname "$0")" && pwd)
-sdk=$(cd "$(dirname "$0")/.." && pwd)
+workdir="$(cd "$(dirname "$0")" && pwd)"
+sdk="$(cd "$(dirname "$0")/.." && pwd)"
 [[ "x$basename" == *"-"* ]] && target=${basename%-*} || exit
 sysroot="$sdk/sysroots/$target"
 toolchain="$sdk/toolchains/clang-$system"
 cctools="$sdk/toolchains/cctools-$system"
 binutils="$sdk/toolchains/binutils-$system"
-ndk="$sdk/toolchains/android-ndk"
+ndk="$CYGWIN_HOME$sdk/toolchains/android-ndk"
+ndksystem=${system/cygwin/windows}
 if [[ "x$target" == "xarm-android" ]]; then
-    ndkgcc=$(ls -1d $ndk/toolchains/arm-linux-androideabi-*/prebuilt/$system-x86_64 | head -1)
+    ndkgcc=$(ls -1d $ndk/toolchains/arm-linux-androideabi-*/prebuilt/$ndksystem-x86_64 | head -1)
     ndktarget=armv7a-none-linux-androideabi
     ndkarch=arm
     ndkplatform=android-16
 elif [[ "x$target" == "xx86-android" ]]; then
-    ndkgcc=$(ls -1d $ndk/toolchains/x86-*/prebuilt/$system-x86_64 | head -1)
+    ndkgcc=$(ls -1d $ndk/toolchains/x86-*/prebuilt/$ndksystem-x86_64 | head -1)
     ndktarget=i686-none-linux-android
     ndkarch=x86
     ndkplatform=android-16
 fi
 action=${basename/#*-/}
-ccache=$(which ccache)
+ccache=$(which ccache 2>/dev/null)
 
 triple_x64_linux="x86_64-linux-clang"
 triple_arm_android="arm-linux-androideabi"
@@ -36,6 +40,7 @@ triple_x86_android="i686-linux-android"
 triple_x86_ios="x86_64-apple-darwin"
 triple_x86_ios32="i386-apple-darwin"
 triple_x86_ios64="x86_64-apple-darwin"
+triple_x86_cygwin="i686-pc-cygwin"
 triplename="triple_${target/-/_}$BITS"
 triple=${!triplename}
 
@@ -52,6 +57,7 @@ host_x86_android="i686-none-linux-android"
 host_x86_ios="x86_64-apple-darwin"
 host_x86_ios32="i386-apple-darwin"
 host_x86_ios64="x86_64-apple-darwin"
+host_x86_cygwin="i686-pc-cygwin"
 hostname="host_${target/-/_}$BITS"
 host=${!hostname}
 
@@ -59,10 +65,16 @@ flags_x64_linux+=" -Wl,--rpath-link=$sysroot/lib/$host:$sysroot/usr/lib/$host"
 flags_x86_linux+=" -Wl,--rpath-link=$sysroot/lib/$host:$sysroot/usr/lib/$host"
 flags_arm_android+=" -fPIE"
 flags_x86_android+=" -fPIE"
-flags_all+=" -Qunused-arguments -fPIC"
+flags_x86_cygwin+=" -Wno-unused-command-line-argument"
+
+if [[ "x$system" != "xcygwin" || "x$target" == *"-android" ]]; then
+    flags_all+=" -Qunused-arguments -fPIC"
+fi
 
 if [[ "x$*" != *"-stdlib"* ]]; then
-    flags_all+=" -stdlib=libc++"
+    if [[ "x$system" != "xcygwin" || "x$target" == *"-android" ]]; then
+        flags_all+=" -stdlib=libc++"
+    fi
 fi
 
 if [[ "x$*" != *"-version-min"* ]]; then
@@ -104,7 +116,7 @@ cc() {
     flags="${!flagsname}"
 
     if [[ "x$target" == *"-android" ]]; then
-        exec $ccache "$ndk/toolchains/llvm/prebuilt/$system-x86_64/bin/clang" \
+        exec $ccache "$ndk/toolchains/llvm/prebuilt/$ndksystem-x86_64/bin/clang" \
             -target $ndktarget \
             --sysroot "$ndk/platforms/$ndkplatform/arch-$ndkarch" \
             --gcc-toolchain="$ndkgcc" \
@@ -126,7 +138,7 @@ cxx() {
     flags="${!flagsname}"
 
     if [[ "x$target" == *"-android" ]]; then
-        exec $ccache "$ndk/toolchains/llvm/prebuilt/$system-x86_64/bin/clang" \
+        exec $ccache "$ndk/toolchains/llvm/prebuilt/$ndksystem-x86_64/bin/clang" \
             -target $ndktarget \
             --sysroot "$ndk/platforms/$ndkplatform/arch-$ndkarch" \
             --gcc-toolchain="$ndkgcc" \
@@ -152,6 +164,8 @@ lipo() {
 invoke() {
     if [[ "x$target" == *"-android" ]]; then
         exec "$ndkgcc/bin/$triple-$action" "$@"
+    elif [[ "x$system" == "xcygwin" ]]; then
+        exec $action "$@"
     else
         exec "$toolchain/bin/$triple-$action" "$@"
     fi
@@ -202,7 +216,7 @@ cmakebuild() {
 
 autobuild() {
     exports
-    "$@" --host=$host --enable-static --disable-shared --with-pic --prefix=$(pwd)/targets --with-sysroot="$sysroot"
+    "$@" --host=$host --enable-static --disable-shared --with-pic --prefix=$(pwd)/targets --with-sysroot="$sysroot" --cache-file="/tmp/confcaches/${PWD//\//_}.$target.cache"
 }
 
 run() {

@@ -162,7 +162,7 @@ onprocess() {
 #                               process                                      #
 ##############################################################################
 case "$target" in
-    x86-linux|x64-linux|arm-android|x86-android|arm-ios|x86-ios|x86-macos)
+    x86-linux|x64-linux|arm-android|x86-android|arm-ios|x86-ios|x86-macos|x86-cygwin)
         onprocess || exit 1
         ;;
     *)
