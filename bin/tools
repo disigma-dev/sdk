@@ -66,6 +66,9 @@ flags_x86_linux+=" -Wl,--rpath-link=$sysroot/lib/$host:$sysroot/usr/lib/$host"
 flags_arm_android+=" -fPIE"
 flags_x86_android+=" -fPIE"
 flags_x86_cygwin+=" -Wno-unused-command-line-argument"
+flags_x86_cygwin+=" --gcc-toolchain=$sysroot/lib/gcc/i686-pc-cygwin/6.4.0"
+flags_x86_cygwin+=" -isystem $sysroot/lib/gcc/i686-pc-cygwin/6.4.0/include/c++"
+flags_x86_cygwin+=" -isystem $sysroot/lib/gcc/i686-pc-cygwin/6.4.0/include/c++/i686-pc-cygwin"
 
 if [[ "x$system" != "xcygwin" || "x$target" == *"-android" ]]; then
     flags_all+=" -Qunused-arguments -fPIC"
@@ -164,8 +167,6 @@ lipo() {
 invoke() {
     if [[ "x$target" == *"-android" ]]; then
         exec "$ndkgcc/bin/$triple-$action" "$@"
-    elif [[ "x$system" == "xcygwin" ]]; then
-        exec $action "$@"
     else
         exec "$toolchain/bin/$triple-$action" "$@"
     fi
